@@ -1,40 +1,17 @@
-const express = require("express");
-const morgan = require('morgan');
-const PORT = process.env.PORT || 7000;
-const pool = require('./db');
-const app = express();
-const cors = require("cors");
+const express = require("express")
+const morgan = require("morgan")
+const cors = require("cors")
+const pool = require("./db")
+const app = express()
+const PORT =process.env.PORT || 8000
 
 //middlewares
+app.use(express.json())
 app.use(cors())
-app.use(express.json());
-app.use(morgan('combined'))
-app.use(express.static('public'))
+app.use(morgan("combined"))
 
 //routes
-
-app.post("/api/chat/user", async(req, res)=>{
-    try {
-      const  {username} = req.body;
-      const newUser = await pool.query("INSERT INTO chat (username) VALUES ($1) RETURNING *", [username]);
-      res.json(newUser.rows[0])
-    } catch (err) {
-        console.error(err.message)
-    }
-})
-
-app.post("/api/chat/messages", async(req, res)=>{
-    try {
-      const  {messages} = req.body;
-      const newMessage = await pool.query("INSERT INTO chat (messages) VALUES ($1) RETURNING *", [messages]);
-      res.json(newMessage.rows[0])
-    } catch (err) {
-        console.error(err.message)
-    }
-})
-
-
-app.get ("/api/chat/users", async (req, res) => {
+app.get("/api/chat/users", async (req, res) => {
     try {
         const allUsers = await pool.query("SELECT * FROM username")
         res.json(allUsers.rows)
@@ -43,7 +20,7 @@ app.get ("/api/chat/users", async (req, res) => {
     }
 })
 
-app.get ("/api/chat/messages", async (req, res) => {
+app.get("/api/chat/messages", async (req, res) => {
     try {
         const allMessages = await pool.query("SELECT * FROM messages")
         res.json(allMessages.rows)
@@ -52,38 +29,51 @@ app.get ("/api/chat/messages", async (req, res) => {
     }
 })
 
-app.get ("/api/chat/users/:id", async (req, res) => {
+app.post("/api/chat/users" , async (req, res) => {
     try {
-        const {id} = req.params
-        const users = await pool.query("SELECT * FROM username WHERE id = ($1)", [id])
-        res.json(users.rows)
+        const {username} = req.body
+        const newUser = await pool.query("INSERT INTO username (username) VALUES ($1)", [username])
+        res.send("New User Created")
     } catch (err) {
         console.error(err.message)
     }
+    
 })
-
-app.get("/api/chat/messages/:id", async (req, res) => {
+app.post("/api/chat/messages" , async (req, res) => {
     try {
-        const {id} = req.params
-        const messages = await pool.query("SELECT * FROM messages WHERE id = ($1)", [id])
-        res.json(messages.rows)
+        const {messages} = req.body
+        const newMessage = await pool.query("INSERT INTO messages (messages) VALUES ($1)", [messages])
+        res.send("New Message Created")
     } catch (err) {
         console.error(err.message)
     }
+    
 })
 
 app.delete("/api/chat/messages/:id", async (req, res) => {
     try {
         const {id} = req.params
-        const delMessage = await pool.query("DELETE FROM messages WHERE id = ($1)", [id])
-        res.send("Deleted")
-        
+        const delUser = await pool.query("DELETE FROM messages WHERE id = ($1)", [id])
+        res.send("Messages Deleted")
         
     } catch (err) {
         console.error(err.message)
+        
     }
 })
 
-app.listen(PORT , () => {
-    console.log(`on port ${PORT}`)
+app.put("api/chat/users/:id", async (req, res) => {
+    try {
+        const {id} = req.params
+        const {username} =req.body
+        const updateUser = await pool.query("UPDATE username SET username = ($1) WHERE id = ($2)",[username, id])
+        res.send("updated")
+    } catch (err) {
+        console.error(err.message)
+        
+    }
+})
+
+app.listen(PORT, () => {
+    console.log(`On port ${PORT}`)
 })
